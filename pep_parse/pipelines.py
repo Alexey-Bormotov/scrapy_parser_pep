@@ -4,6 +4,7 @@ from pathlib import Path
 from pep_parse.settings import DATETIME_FORMAT
 
 BASE_DIR = Path(__file__).parents[1]
+TABLE_HEADER = 'Статус,Количество\n'
 
 
 class PepParsePipeline:
@@ -13,9 +14,10 @@ class PepParsePipeline:
         pass
 
     def process_item(self, item, spider):
-        PepParsePipeline.counter[item['status']] = (
-            PepParsePipeline.counter.get(item['status'], 0) + 1
-        )
+        if item['status'] not in PepParsePipeline.counter:
+            PepParsePipeline.counter[item['status']] = 0
+
+        PepParsePipeline.counter[item['status']] += 1
 
         return item
 
@@ -28,7 +30,7 @@ class PepParsePipeline:
             BASE_DIR / 'results' / filename, mode='w', encoding='utf-8'
         ) as f:
 
-            f.write('Статус,Количество\n')
+            f.write(TABLE_HEADER)
 
             for key, value in PepParsePipeline.counter.items():
                 f.write(f'{key},{value}\n')
